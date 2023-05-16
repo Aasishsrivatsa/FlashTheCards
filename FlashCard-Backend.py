@@ -41,17 +41,21 @@ class Backend:
             time_taken = time_taken.replace(",", "|")
             correctness = correctness.replace(",", "|")
 
-            try:
-                # Save the data to the CSV file
-                with open(self.csv_file_path, 'a', newline='') as file:
-                    writer = csv.writer(file)
-                    writer.writerow([question, answer, time_taken, correctness])
-            except Exception as e:
-                # Handle the exception, e.g., print an error message or log the exception
-                print(f"An error occurred while saving the flashcard: {e}")
-                return jsonify({"success": False})
+            if not question or not answer:
+                # Return an error response indicating missing question or answer
+                return jsonify({'success': False, 'error': 'Question and answer are required.'})
+            else:
+                try:
+                    # Save the data to the CSV file
+                    with open(self.csv_file_path, 'a', newline='') as file:
+                        writer = csv.writer(file)
+                        writer.writerow([question, answer, time_taken, correctness])
+                except Exception as e:
+                    # Handle the exception, e.g., print an error message or log the exception
+                    print(f"An error occurred while saving the flashcard: {e}")
+                    return jsonify({"success": False})
 
-            return jsonify({"success": True})
+                return jsonify({"success": True})
 
 if __name__ == "__main__":
     Server = Backend()
