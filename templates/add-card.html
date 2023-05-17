@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Flashcard App</title>
+
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" type = "image/x-icon" href="/static/favicon.png">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="public, max-age=31536000">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+</head>
+<body>
+    <header>
+        <a href="/" class="back-link">
+            <img src="/static/back.svg" class="back-icon" alt="Back" onerror="this.style.display='none'; document.querySelector('.back-link').textContent='Back';">
+        </a>
+        <h1>Add new Cards</h1>
+    </header>
+    <main>
+        <form id="flashcardForm">
+            <div class="form-group">
+                <label for="question">Question:</label>
+                <input type="text" id="question" name="question" required>
+            </div>
+            <div class="form-group">
+                <label for="answer">Answer:</label>
+                <input type="text" id="answer" name="answer" required>
+            </div>
+            <div class="form-group">
+                <button type="submit">Save Flashcard</button>
+            </div>
+        </form>
+        <div class="card-preview">
+            <div class="card">
+                <div class="card-front">
+                    <div class="question">Question: <span id="questionPreview"></span></div>
+                  </div>
+                  <div class="card-back">
+                    <div class="answer">Answer: <span id="answerPreview"></span></div>
+                  </div>                  
+            </div>
+          </div>
+          
+    </main>
+    
+    <script src="/static/add-card-script.js"></script>
+</body>
+</html>
