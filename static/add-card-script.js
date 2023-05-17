@@ -8,8 +8,6 @@ function saveFlashcard(event) {
     var timeTaken = "0";
     var correctness = "True";
 
-
-    // Create a new AJAX request
     var xhr = new XMLHttpRequest();
     xhr.open('POST', '/save_flashcard', true);
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -19,7 +17,6 @@ function saveFlashcard(event) {
                 var response = JSON.parse(xhr.responseText);
                 if (response.success) {
                     alert('Flashcard saved!');
-                    // Clear the form inputs
                     form.reset();
                 } else {
                     alert('An error occurred while saving the flashcard.');
@@ -29,12 +26,35 @@ function saveFlashcard(event) {
             }
         }
     };
-    // Send the request with the form data
-    xhr.send('question=' + encodeURIComponent(question) +
-                '&answer=' + encodeURIComponent(answer) +
-                '&time=' + encodeURIComponent(timeTaken) +
-                '&correctness=' + encodeURIComponent(correctness));
+    xhr.send(
+        'question=' + encodeURIComponent(question) +
+        '&answer=' + encodeURIComponent(answer) +
+        '&time=' + encodeURIComponent(timeTaken) +
+        '&correctness=' + encodeURIComponent(correctness)
+    );
 }
 
-// Add event listener to handle form submission
-document.getElementById('flashcardForm').addEventListener('submit', saveFlashcard);
+// Update card preview on question input change
+document.getElementById('question').addEventListener('input', function() {
+    var questionPreview = document.getElementById('questionPreview');
+    questionPreview.textContent = this.value;
+    updateCardHeight();
+});
+
+// Update card preview on answer input change
+document.getElementById('answer').addEventListener('input', function() {
+    var answerPreview = document.getElementById('answerPreview');
+    answerPreview.textContent = this.value;
+    updateCardHeight();
+});
+
+// Fix the issue where answer appears in place of the question
+document.getElementById('answer').addEventListener('focus', function() {
+    var questionPreview = document.getElementById('questionPreview');
+    questionPreview.style.visibility = 'hidden';
+});
+
+document.getElementById('answer').addEventListener('blur', function() {
+    var questionPreview = document.getElementById('questionPreview');
+    questionPreview.style.visibility = 'visible';
+});
