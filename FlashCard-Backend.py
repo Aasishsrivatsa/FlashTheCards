@@ -66,6 +66,20 @@ class Backend:
 class DataHandler:
     def __init__(self,path=csv_path) -> None:
         self.csv_file_path = path
+        self.questions = []
+        self.questions.extend(DataHandler.read_csv(self.csv_file_path))
+
+    @staticmethod
+    def read_csv(path):
+        try:
+            with open(path, 'r') as file:
+                reader = csv.reader(file)
+                questions = list(reader)
+        except Exception as e:
+            # Handle the exception, e.g., print an error message or log the exception
+            print(f"An error occurred while loading flashcards: {e}")
+        finally:
+            return questions
     
     def append_data(self, data):
         try:
@@ -73,14 +87,14 @@ class DataHandler:
             self.answer = data[1]
             self.time_taken = data[2]
             self.correctness = data[3]
-            self.number_of_times_seen = data[4]
+            self.number_of_times_failed = data[4]
 
             # Save the data to the CSV file
 
             with open(self.csv_file_path, 'a', newline='') as file:
                 writer = csv.writer(file)
-                writer.writerow([self.question, self.answer, self.time_taken, self.correctness, self.number_of_times_seen])
-                self.questions.append([self.question, self.answer, self.time_taken, self.correctness, self.number_of_times_seen])
+                writer.writerow([self.question, self.answer, self.time_taken, self.correctness, self.number_of_times_failed])
+                self.questions.append([self.question, self.answer, self.time_taken, self.correctness, self.number_of_times_failed])
 
         except Exception as e:
 
