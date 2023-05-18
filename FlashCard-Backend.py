@@ -1,7 +1,7 @@
+from datahandler import DataHandler
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 import random
-import csv
 
 csv_path = 'flashcards.csv'
 
@@ -12,7 +12,6 @@ class Backend:
         self.app = Flask(__name__)
         CORS(self.app)
         self.questions = []
-        self.load_flashcards()
 
         self.app.route('/')(self.hompage)
         self.app.route('/add-card')(self.add_card)
@@ -30,14 +29,7 @@ class Backend:
         return render_template("start-app.html")
 
     def load_flashcards(self):
-        try:
-            # Load flashcards from the CSV file
-            with open(self.csv_file_path, 'r') as file:
-                reader = csv.reader(file)
-                self.questions = list(reader)
-        except Exception as e:
-            # Handle the exception, e.g., print an error message or log the exception
-            print(f"An error occurred while loading flashcards: {e}")
+        DataHandler.read_csv(self.csv_file_path)
 
     def get_flashcard(self):
         flashcard = random.choice(self.questions)
@@ -62,45 +54,6 @@ class Backend:
             database.append_data([question, answer, time_taken, correctness, number_of_times_seen])
             return jsonify({"success": True})
 
-
-class DataHandler:
-    def __init__(self,path=csv_path) -> None:
-        self.csv_file_path = path
-        self.questions = []
-        self.questions.extend(DataHandler.read_csv(self.csv_file_path))
-
-    @staticmethod
-    def read_csv(path):
-        try:
-            with open(path, 'r') as file:
-                reader = csv.reader(file)
-                questions = list(reader)
-        except Exception as e:
-            # Handle the exception, e.g., print an error message or log the exception
-            print(f"An error occurred while loading flashcards: {e}")
-        finally:
-            return questions
-    
-    def append_data(self, data):
-        try:
-            self.question = data[0]
-            self.answer = data[1]
-            self.time_taken = data[2]
-            self.correctness = data[3]
-            self.number_of_times_failed = data[4]
-
-            # Save the data to the CSV file
-
-            with open(self.csv_file_path, 'a', newline='') as file:
-                writer = csv.writer(file)
-                writer.writerow([self.question, self.answer, self.time_taken, self.correctness, self.number_of_times_failed])
-                self.questions.append([self.question, self.answer, self.time_taken, self.correctness, self.number_of_times_failed])
-
-        except Exception as e:
-
-            # Handle the exception, e.g., print an error message or log the exception
-            print(f"An error occurred while saving the flashcard: {e}")
-            return jsonify({"success": False})
 
 if __name__ == "__main__":
     server = Backend()
