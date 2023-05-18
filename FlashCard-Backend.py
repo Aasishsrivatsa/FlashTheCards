@@ -1,4 +1,4 @@
-from datahandler import DataHandler
+from DataCSV import DataHandler
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 import random
@@ -51,11 +51,10 @@ class Backend:
             # Return an error response indicating missing question or answer
             return jsonify({'success': False, 'error': 'Question and answer are required.'})
         else:
-            database.append_data([question, answer, time_taken, correctness, number_of_times_seen])
+            DataHandler.append_data([question, answer, time_taken, correctness, number_of_times_seen],self.csv_file_path)
             return jsonify({"success": True})
 
 
 if __name__ == "__main__":
     server = Backend()
-    database = DataHandler()
     server.app.run(host="0.0.0.0", debug=True)
