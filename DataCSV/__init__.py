@@ -9,7 +9,7 @@ class DataHandler:
     def read_csv(path):
         questions = []
         try:
-            with open(path, 'r') as file:
+            with open(path, 'r', encoding = 'utf-8') as file:
                 reader = csv.reader(file)
                 questions = list(reader)
         except Exception as e:
@@ -29,7 +29,7 @@ class DataHandler:
 
             # Save the data to the CSV file
 
-            with open(path, 'a', newline='') as file:
+            with open(path, 'a', newline='', encoding = 'utf-8') as file:
                 writer = csv.writer(file)
                 writer.writerow([question, answer, time_taken, correctness, number_of_times_failed])
 
@@ -52,7 +52,7 @@ class DataHandler:
 
             questions.sort(key=lambda x: (x[3] is False, -float(x[2]), int(x[4])), reverse=True)
 
-            with open(path, 'w', newline='') as file:
+            with open(path, 'w', newline='',encoding = 'utf-8') as file:
                 writer = csv.writer(file)
                 writer.writerows(questions)
         except IndexError:

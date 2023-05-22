@@ -12,13 +12,14 @@ class Backend:
         self.app = Flask(__name__)
         CORS(self.app)
         self.questions = []
-
+        
         self.app.route('/')(self.hompage)
         self.app.route('/add-card')(self.add_card)
         self.app.route('/start-app')(self.start)
         self.app.route('/flashcard', methods=['GET'])(self.get_flashcard)
         self.app.route('/save_flashcard', methods=['POST'])(self.save_flashcard)
 
+    
     def hompage(self):
         return render_template("homepage.html")
     
