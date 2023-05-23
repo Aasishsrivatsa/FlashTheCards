@@ -2,6 +2,7 @@ from DataCSV import DataHandler
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 import random
+import threading
 
 csv_path = 'flashcards.csv'
 
@@ -19,6 +20,14 @@ class Backend:
         self.app.route('/flashcard', methods=['GET'])(self.get_flashcard)
         self.app.route('/save_flashcard', methods=['POST'])(self.save_flashcard)
 
+    def run_in_thread(self,func):
+        lock = threading.Lock()
+
+        def wrapper(*args, **kwargs):
+            with lock:
+                thread = threading.Thread(target=func, args=args, kwargs=kwargs)
+                thread.start()
+        return wrapper
     
     def hompage(self):
         return render_template("homepage.html")
@@ -35,6 +44,7 @@ class Backend:
     def get_flashcard(self):
         flashcard = random.choice(self.questions)
         return jsonify(flashcard)
+    
 
     def save_flashcard(self):
         # Get user inputs from the request
@@ -52,10 +62,13 @@ class Backend:
             # Return an error response indicating missing question or answer
             return jsonify({'success': False, 'error': 'Question and answer are required.'})
         else:
-            DataHandler.append_data([question, answer, time_taken, correctness, number_of_times_seen],self.csv_file_path)
+            append = DataHandler.append_data([question, answer,
+                    time_taken, correctness, number_of_times_seen],self.csv_file_path)
+            self.run_in_thread(append)
             return jsonify({"success": True})
 
 
 if __name__ == "__main__":
     server = Backend()
     server.app.run(host="0.0.0.0", debug=True)
+ 
