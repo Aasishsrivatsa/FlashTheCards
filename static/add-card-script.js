@@ -14,18 +14,28 @@ function saveFlashcard(event) {
             if (xhr.status === 200) {
                 var response = JSON.parse(xhr.responseText);
                 if (response.success) {
-                    alert('Flashcard saved!');
+                    showError(response);
                     form.reset();
                 }
                 else {
-                    alert('An error occurred while saving the flashcard.');
+                    showError(response)
                 }
             }
             else {
-                alert('An error occurred while making the request.');
+                alert('Error making the request')
             }
         }
     };
     xhr.send('question=' + encodeURIComponent(question) +
         '&answer=' + encodeURIComponent(answer));
+}
+
+function showError(response) {
+    var messageElement = document.getElementById('message');
+    messageElement.textContent = response.message;
+    messageElement.style.color = response.success ? 'green' : 'red';
+
+    setTimeout(function() {
+        messageElement.textContent = '';
+            }, 3000);
 }

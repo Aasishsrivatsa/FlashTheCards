@@ -60,12 +60,13 @@ class Backend:
 
         if not question or not answer:
             # Return an error response indicating missing question or answer
-            return jsonify({'success': False, 'error': 'Question and answer are required.'})
+            return jsonify({"success": False, "message": "An error occurred while saving the flashcard."})
         else:
             append = DataHandler.append_data([question, answer,
                     time_taken, correctness, number_of_times_seen],self.csv_file_path)
             self.run_in_thread(append)
-            return jsonify({"success": True})
+            return jsonify({"success": True, "message": "Flashcard saved!"})
+            
 
 
 if __name__ == "__main__":
