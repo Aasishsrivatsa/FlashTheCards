@@ -2,8 +2,6 @@ import csv
 from flask import jsonify
 
 class DataHandler:
-    def __init__(self) -> None:
-        self.csv_file_path = 'flashcards.csv'
 
     @staticmethod
     def read_csv(path):
