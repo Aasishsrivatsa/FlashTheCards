@@ -2,22 +2,35 @@
 <html>
 <head>
   <title>Flashcards App - Start</title>
-  <link rel="stylesheet" type="text/css" href="style.css">
+  <link rel="stylesheet" type="text/css" href="/static/main-page-style.css">
+  <link rel="icon" type = "image/x-icon" href="/static/webData/favicon.png">
+
+  <script src="/static/main-script.js" defer ></script>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="public, max-age=31536000">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+
 </head>
 <body>
-  <h1>Welcome to the Flashcards App</h1>
-  
-  <div id="flashcardContainer">
-    <h2>Flashcard:</h2>
-    <div id="questionContainer"></div>
-    <div id="answerContainer"></div>
-    <div id="timeTakenContainer"></div>
-    <div id="correctnessContainer"></div>
-    <div id="timesFailedContainer"></div>
-  </div>
+  <header>
+    <a href="/" class="back-link">
+        <img src="/static/webData/back.svg" class="back-icon" alt="Back" onerror="this.style.display='none'; document.querySelector('.back-link').textContent='Back';">
+    </a>
+    <h1>Welcome to the Flashcards App</h1>
+  </header>
 
-  <button id="getFlashcardBtn">Get Flashcard</button>
+  <main>
+    <div class="card">
+      <div class="card-content">
+        <h2 class="card-title">Flashcard Title</h2>
+        <p class="card-description">Flashcard Description</p>
+      </div>
+    </div>
+    
 
-  <script src="script.js"></script>
+    <button id="getFlashcardBtn" onclick="getFlashcard()">Get Flashcard</button>
+  </main>
+
 </body>
 </html>
