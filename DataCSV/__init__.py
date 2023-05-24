@@ -4,6 +4,42 @@ from flask import jsonify
 class DataHandler:
 
     @staticmethod
+    def update_flashcard(question, answer, time_taken, correctness, number_of_times_seen, path):
+        updated = False
+        rows = []
+        try:
+            with open(path, 'r', encoding='utf-8') as file:
+                reader = csv.reader(file)
+                for row in reader:
+                    if row[0] == question:
+                        # Update the flashcard fields for the matching question
+                        row[1] = answer
+                        row[2] = time_taken
+                        row[3] = correctness
+                        if correctness == 'False':
+                            row[4] = str(int(row[4]) + 1)
+                        else:
+                            row[4] = '0'
+                        updated = True
+                    rows.append(row)
+
+            if updated:
+                with open(path, 'w', newline='', encoding='utf-8') as file:
+                    writer = csv.writer(file)
+                    writer.writerows(rows)
+
+                # Sort the flashcards using a separate thread
+                threading.Thread(target=DataHandler.sort_flashcards, args=(path,)).start()
+
+            return updated
+
+        except Exception as e:
+            # Handle the exception, e.g., print an error message or log the exception
+            print(f"An error occurred while updating the flashcard: {e}")
+
+            return updated
+
+    @staticmethod
     def read_csv(path):
         questions = []
         try:
@@ -15,6 +51,8 @@ class DataHandler:
             print(f"An error occurred while loading flashcards: {e}")
 
         return questions
+
+        DataHandler.sort_flashcards(path)
     
     @staticmethod
     def append_data(data,path):
