@@ -12,7 +12,7 @@
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
 
 </head>
-<body>
+<body onload="getFlashcard()">
   <header>
     <a href="/" class="back-link">
         <img src="/static/webData/back.svg" class="back-icon" alt="Back" onerror="this.style.display='none'; document.querySelector('.back-link').textContent='Back';">
@@ -23,8 +23,8 @@
   <main>
     <div class="card">
       <div class="card-content">
-        <h2 class="card-title">Flashcard Title</h2>
-        <p class="card-description">Flashcard Description</p>
+        <h2 class="card-question">-</h2>
+        <p class="card-answer">-</p>
       </div>
     </div>
     

@@ -12,6 +12,8 @@ class Backend:
         self.csv_file_path = path
         self.app = Flask(__name__)
         CORS(self.app)
+        self.questions = []
+        self.load_flashcards()
 
         self.app.route('/')(self.hompage)
         self.app.route('/add-card')(self.add_card)
@@ -34,11 +36,22 @@ class Backend:
         return render_template("start-app.html")
 
     def load_flashcards(self):
-        questions = DataHandler.read_csv(self.csv_file_path)
-        return questions
+        self.questions = DataHandler.read_csv(self.csv_file_path)
 
     def get_flashcard(self):
-        flashcard = random.choice(self.load_flashcards())
+        if len(self.questions) == 0:
+            self.load_flashcards()
+
+        flashcard1_selc= random.randint(0,3)
+        flashcard1 = self.questions[flashcard1_selc]
+        flashcard2 = random.choice(self.questions)
+
+        flashcard_chooser = []
+        flashcard_chooser.append(flashcard1)
+        flashcard_chooser.append(flashcard2)
+
+        flashcard = random.choice(flashcard_chooser)
+
         response = {
             'question' : flashcard[0],
             'answer' : flashcard[1]
@@ -57,16 +70,16 @@ class Backend:
         question = question.replace(",", "|")
         answer = answer.replace(",", "|")
 
+        question_list = [question,answer,time_taken,correctness,number_of_times_seen]
+
         if not question or not answer:
             # Return an error response indicating missing question or answer
             return jsonify({"success": False, "message": "An error occurred while saving the flashcard."})
         else:
-            append = DataHandler.append_data(
-                    [question, answer, time_taken, correctness, number_of_times_seen],
-                    self.csv_file_path
-                )
+            append = DataHandler.append_data(question_list, self.csv_file_path)
 
             self.run_in_thread(append)
+            self.questions.append(question_list)
             return jsonify({"success": True, "message": "Flashcard saved!"})
 
 

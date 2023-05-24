@@ -17,8 +17,8 @@ function getFlashcard() {
   }
   
   function updateFlashcard(flashcard) {
-    var titleElement = document.querySelector('.card-title');
-    var descriptionElement = document.querySelector('.card-description');
+    var titleElement = document.querySelector('.card-question');
+    var descriptionElement = document.querySelector('.card-answer');
   
     // Replace pipes with commas in the question and answer
     var question = flashcard.question.replace(/\|/g, ',');
@@ -28,7 +28,5 @@ function getFlashcard() {
     descriptionElement.textContent = answer;
   }
   
-  
-  // Call getFlashcard() when the page loads to fetch the initial flashcard
-  window.addEventListener('load', getFlashcard);
+
    
