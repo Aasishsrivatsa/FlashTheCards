@@ -1,25 +1,36 @@
+from DataCSV import DataHandler
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 import random
-import csv
+import threading
+
+csv_path = 'flashcards.csv'
 
 class Backend:
-    csv_file_path = 'flashcards.csv'
 
-    def __init__(self):
+    def __init__(self,path = csv_path) -> None:
+        self.csv_file_path = path
         self.app = Flask(__name__)
         CORS(self.app)
         self.questions = []
-        self.load_flashcards()
-
-        self.app.route('/')(self.index)
+        
+        self.app.route('/')(self.hompage)
         self.app.route('/add-card')(self.add_card)
         self.app.route('/start-app')(self.start)
         self.app.route('/flashcard', methods=['GET'])(self.get_flashcard)
         self.app.route('/save_flashcard', methods=['POST'])(self.save_flashcard)
 
-    def index(self):
-        return render_template("index.html")
+    def run_in_thread(self,func):
+        lock = threading.Lock()
+
+        def wrapper(*args, **kwargs):
+            with lock:
+                thread = threading.Thread(target=func, args=args, kwargs=kwargs)
+                thread.start()
+        return wrapper
+    
+    def hompage(self):
+        return render_template("homepage.html")
     
     def add_card(self):
         return render_template("add-card.html")
@@ -28,49 +39,37 @@ class Backend:
         return render_template("start-app.html")
 
     def load_flashcards(self):
-        try:
-            # Load flashcards from the CSV file
-            with open(self.csv_file_path, 'r') as file:
-                reader = csv.reader(file)
-                self.questions = list(reader)
-        except Exception as e:
-            # Handle the exception, e.g., print an error message or log the exception
-            print(f"An error occurred while loading flashcards: {e}")
+        DataHandler.read_csv(self.csv_file_path)
 
     def get_flashcard(self):
         flashcard = random.choice(self.questions)
         return jsonify(flashcard)
+    
 
     def save_flashcard(self):
         # Get user inputs from the request
         question = request.form.get("question")
         answer = request.form.get("answer")
-        time_taken = request.form.get("time")
-        correctness = request.form.get("correctness")
+        time_taken = 0
+        correctness = True
+        number_of_times_seen = 0
 
         # Replace commas with pipes
         question = question.replace(",", "|")
         answer = answer.replace(",", "|")
-        time_taken = time_taken.replace(",", "|")
-        correctness = correctness.replace(",", "|")
 
         if not question or not answer:
             # Return an error response indicating missing question or answer
-            return jsonify({'success': False, 'error': 'Question and answer are required.'})
+            return jsonify({"success": False, "message": "An error occurred while saving the flashcard."})
         else:
-            try:
-                # Save the data to the CSV file
-                with open(self.csv_file_path, 'a', newline='') as file:
-                    writer = csv.writer(file)
-                    writer.writerow([question, answer, time_taken, correctness])
-                    self.questions.append([question, answer, time_taken, correctness])
-            except Exception as e:
-                # Handle the exception, e.g., print an error message or log the exception
-                print(f"An error occurred while saving the flashcard: {e}")
-                return jsonify({"success": False})
+            append = DataHandler.append_data([question, answer,
+                    time_taken, correctness, number_of_times_seen],self.csv_file_path)
+            self.run_in_thread(append)
+            return jsonify({"success": True, "message": "Flashcard saved!"})
+            
 
-            return jsonify({"success": True})
 
 if __name__ == "__main__":
     server = Backend()
     server.app.run(host="0.0.0.0", debug=True)
+ 
