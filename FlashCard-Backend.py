@@ -20,6 +20,7 @@ class Backend:
         self.app.route('/start-app')(self.start)
         self.app.route('/flashcard', methods=['GET'])(self.get_flashcard)
         self.app.route('/save_flashcard', methods=['POST'])(self.save_flashcard)
+        self.app.route('/update_flashcard', methods=['POS'])(self.update_flashcard)
 
     def run_in_thread(self, func):
         def wrapper(*args, **kwargs):
@@ -80,6 +81,19 @@ class Backend:
             self.run_in_thread(append)
             self.questions.append(question_list)
             return jsonify({"success": True, "message": "Flashcard saved!"})
+
+    def update_flashcard(self):
+        question = request.form.get("question")
+        time_taken = request.form.get("time")
+        correctness = request.form.get("correctness")
+        
+        data = [question, time_taken, correctness]
+
+        update = DataHandler.update_flashcard(data, self.csv_file_path)
+        
+        self.run_in_thread(update)
+        
+        return jsonify({"success" : True, "message" : "Response collected"})
 
 
 if __name__ == "__main__":

@@ -6,9 +6,8 @@ class DataHandler:
     @staticmethod
     def update_flashcard(data:list, path:str) -> bool:
         question = data[0]
-        answer = data[1]
-        time_taken = data[2]
-        correctness = data[3]
+        time_taken = data[1]
+        correctness = data[2]
 
         updated = False
         rows = []
@@ -18,7 +17,6 @@ class DataHandler:
                 for row in reader:
                     if row[0] == question:
                         # Update the flashcard fields for the matching question
-                        row[1] = answer
                         row[2] = time_taken
                         row[3] = correctness
 
@@ -45,6 +43,7 @@ class DataHandler:
             print(f"An error occurred while updating the flashcard: {e}")
 
             return updated
+        
         DataHandler.sort_flashcards(path)
 
     @staticmethod

@@ -1,5 +1,3 @@
-
-
 function getFlashcard() {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', '/flashcard', true);
