@@ -42,8 +42,7 @@ class Backend:
         if len(self.questions) == 0:
             self.load_flashcards()
 
-        flashcard1_selc= random.randint(0,3)
-        flashcard1 = self.questions[flashcard1_selc]
+        flashcard1 = self.questions[random.randint(0,2)]
         flashcard2 = random.choice(self.questions)
 
         flashcard_chooser = []
