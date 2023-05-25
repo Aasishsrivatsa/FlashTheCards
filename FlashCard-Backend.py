@@ -32,7 +32,7 @@ class Backend:
         return render_template("start-app.html")
 
     async def load_flashcards(self):
-    self.questions = await self.data_handler.read_csv(self.csv_file_path)
+        self.questions = await self.data_handler.read_csv(self.csv_file_path)
 
     async def get_flashcard(self):
         if len(self.questions) == 0:
