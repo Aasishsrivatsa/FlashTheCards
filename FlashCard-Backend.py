@@ -2,7 +2,6 @@ from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 import random
 from DataCSV import DataHandler
-import asyncio
 
 csv_path = 'flashcards.csv'
 
@@ -13,7 +12,7 @@ class Backend:
         CORS(self.app)
         self.questions = []
         self.data_handler = DataHandler()
-        self.load_flashcards()
+        asyncio.run(self.load_flashcards())
 
         self.app.route('/')(self.homepage)
         self.app.route('/add-card')(self.add_card)
@@ -21,31 +20,24 @@ class Backend:
         self.app.route('/flashcard', methods=['GET'])(self.get_flashcard)
         self.app.route('/save_flashcard', methods=['POST'])(self.save_flashcard)
         self.app.route('/update_flashcard', methods=['POST'])(self.update_flashcard)
-        
-    async def homepage(self):
+
+    def homepage(self):
         return render_template("homepage.html")
 
-    async def add_card(self):
+    def add_card(self):
         return render_template("add-card.html")
 
-    async def start(self):
+    def start(self):
         return render_template("start-app.html")
 
-    async def load_flashcards(self):
-        self.questions = await self.data_handler.read_csv(self.csv_file_path)
-
-    async def get_flashcard(self):
+    def get_flashcard(self):
         if len(self.questions) == 0:
             self.load_flashcards()
 
         flashcard1 = self.questions[random.randint(0, 2)]
         flashcard2 = random.choice(self.questions)
 
-        flashcard_chooser = []
-        flashcard_chooser.append(flashcard1)
-        flashcard_chooser.append(flashcard2)
-
-        flashcard = random.choice(flashcard_chooser)
+        flashcard = random.choice([flashcard1, flashcard2])
 
         response = {
             'question': flashcard[0],
@@ -53,7 +45,7 @@ class Backend:
         }
         return jsonify(response)
 
-    async def save_flashcard(self):
+    def save_flashcard(self):
         question = request.form.get("question")
         answer = request.form.get("answer")
         time_taken = 0
@@ -68,22 +60,23 @@ class Backend:
         if not question or not answer:
             return jsonify({"success": False, "message": "An error occurred while saving the flashcard."})
         else:
-            await self.data_handler.append_data(question_list, self.csv_file_path)
+            self.data_handler.append_data(question_list, self.csv_file_path)
             self.questions.append(question_list)
             return jsonify({"success": True, "message": "Flashcard saved!"})
 
-    async def update_flashcard(self):
+    def update_flashcard(self):
         question = request.form.get("question")
         time_taken = request.form.get("time")
         correctness = request.form.get("correctness")
-        
+
         data = [question, time_taken, correctness]
-        await self.data_handler.update_flashcard(data, self.csv_file_path)
-        
+        self.data_handler.update_flashcard(data, self.csv_file_path)
+
         return jsonify({"success": True, "message": "Response collected"})
 
+    def load_flashcards(self):
+        self.questions = self.data_handler.read_csv(self.csv_file_path)
 
 if __name__ == "__main__":
     server = Backend()
-    server.load_flashcards()
-    server.app.run(host="0.0.0.0", debug=True)
+    server.app.run(host="0.0.0.0", debug=False)
