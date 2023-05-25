@@ -7,7 +7,6 @@ from DataCSV import DataHandler
 csv_path = 'flashcards.csv'
 
 class Backend:
-
     def __init__(self, path=csv_path) -> None:
         self.csv_file_path = path
         self.app = Flask(__name__)
@@ -15,19 +14,19 @@ class Backend:
         self.questions = []
         self.load_flashcards()
 
-        self.app.route('/')(self.hompage)
+        self.app.route('/')(self.homepage)
         self.app.route('/add-card')(self.add_card)
         self.app.route('/start-app')(self.start)
         self.app.route('/flashcard', methods=['GET'])(self.get_flashcard)
         self.app.route('/save_flashcard', methods=['POST'])(self.save_flashcard)
-        self.app.route('/update_flashcard', methods=['POS'])(self.update_flashcard)
+        self.app.route('/update_flashcard', methods=['POST'])(self.update_flashcard)
 
     def run_in_thread(self, func):
         def wrapper(*args, **kwargs):
             threading.Thread(target=func, args=args, kwargs=kwargs).start()
         return wrapper
 
-    def hompage(self):
+    def homepage(self):
         return render_template("homepage.html")
 
     def add_card(self):
@@ -43,7 +42,7 @@ class Backend:
         if len(self.questions) == 0:
             self.load_flashcards()
 
-        flashcard1 = self.questions[random.randint(0,2)]
+        flashcard1 = self.questions[random.randint(0, len(self.questions) - 1)]
         flashcard2 = random.choice(self.questions)
 
         flashcard_chooser = []
@@ -53,31 +52,27 @@ class Backend:
         flashcard = random.choice(flashcard_chooser)
 
         response = {
-            'question' : flashcard[0],
-            'answer' : flashcard[1]
+            'question': flashcard[0],
+            'answer': flashcard[1]
         }
         return jsonify(response)
 
     def save_flashcard(self):
-        # Get user inputs from the request
         question = request.form.get("question")
         answer = request.form.get("answer")
         time_taken = 0
         correctness = True
         number_of_times_seen = 0
 
-        # Replace commas with pipes
         question = question.replace(",", "|")
         answer = answer.replace(",", "|")
 
-        question_list = [question,answer,time_taken,correctness,number_of_times_seen]
+        question_list = [question, answer, time_taken, correctness, number_of_times_seen]
 
         if not question or not answer:
-            # Return an error response indicating missing question or answer
             return jsonify({"success": False, "message": "An error occurred while saving the flashcard."})
         else:
             append = DataHandler.append_data(question_list, self.csv_file_path)
-
             self.run_in_thread(append)
             self.questions.append(question_list)
             return jsonify({"success": True, "message": "Flashcard saved!"})
@@ -88,12 +83,11 @@ class Backend:
         correctness = request.form.get("correctness")
         
         data = [question, time_taken, correctness]
-
         update = DataHandler.update_flashcard(data, self.csv_file_path)
         
         self.run_in_thread(update)
         
-        return jsonify({"success" : True, "message" : "Response collected"})
+        return jsonify({"success": True, "message": "Response collected"})
 
 
 if __name__ == "__main__":
