@@ -4,7 +4,50 @@ from flask import jsonify
 class DataHandler:
 
     @staticmethod
-    def read_csv(path):
+    def update_flashcard(data:list, path:str) -> bool:
+        question = data[0]
+        time_taken = data[1]
+        correctness = data[2]
+
+        updated = False
+        rows = []
+        try:
+            with open(path, 'r', encoding='utf-8') as file:
+                reader = csv.reader(file)
+                for row in reader:
+                    if row[0] == question:
+                        # Update the flashcard fields for the matching question
+                        row[2] = time_taken
+                        row[3] = correctness
+
+                        if str(correctness).lower() == 'false':
+                            row[4] = str(int(row[4]) + 1)
+                        else:
+                            row[4] = '0'
+
+                        updated = True
+                    rows.append(row)
+
+            if updated:
+                with open(path, 'w', newline='', encoding='utf-8') as file:
+                    writer = csv.writer(file)
+                    writer.writerows(rows)
+
+                # Sort the flashcards using a separate thread
+                threading.Thread(target=DataHandler.sort_flashcards, args=(path,)).start()
+
+            return updated
+
+        except Exception as e:
+            # Handle the exception, e.g., print an error message or log the exception
+            print(f"An error occurred while updating the flashcard: {e}")
+
+            return updated
+        
+        DataHandler.sort_flashcards(path)
+
+    @staticmethod
+    def read_csv(path:str) -> list:
         questions = []
         try:
             with open(path, 'r', encoding = 'utf-8') as file:
@@ -15,9 +58,11 @@ class DataHandler:
             print(f"An error occurred while loading flashcards: {e}")
 
         return questions
+
+        DataHandler.sort_flashcards(path)
     
     @staticmethod
-    def append_data(data,path):
+    def append_data(data:list ,path:str) -> None:
         try:
             question = data[0]
             answer = data[1]
@@ -40,7 +85,7 @@ class DataHandler:
         DataHandler.sort_flashcards(path)
 
     @staticmethod
-    def sort_flashcards(path):
+    def sort_flashcards(path:str) -> None:
         try:
             questions = DataHandler.read_csv(path)
 
