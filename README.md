@@ -21,7 +21,13 @@ FlashCard App is a web application that allows users to create and study flashca
 
 To run the FlashCard App locally, follow these steps:
 
-1. Clone the repository:
+Clone the repository:
 
 ```shell
 git clone https://github.com/Aasishsrivatsa/FlashTheCards.git
+```
+
+
+## Contributing
+
+Contributions are welcome! If you have any ideas, suggestions, or bug reports, please create an issue or submit a pull request.
