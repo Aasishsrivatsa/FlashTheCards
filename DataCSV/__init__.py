@@ -1,15 +1,9 @@
 import csv
-import asyncio
-from asyncio import Lock
 from flask import jsonify
 
 class DataHandler:
-    def __init__(self):
-        self.lock = Lock()
-        self.counter = 0
-        self.threshold = 3
-
-    async def update_flashcard(self, data: list, path: str) -> bool:
+    @staticmethod
+    def update_flashcard(data: list, path: str) -> bool:
         question = data[0]
         time_taken = data[1]
         correctness = data[2]
@@ -17,31 +11,26 @@ class DataHandler:
         updated = False
         rows = []
         try:
-            async with self.lock:
-                rows = await self.read_csv(path)
-                for i, row in enumerate(rows):
+            with open(path, 'r', encoding='utf-8') as file:
+                reader = csv.reader(file)
+                for row in reader:
                     if row[0] == question:
                         # Update the flashcard fields for the matching question
-                        rows[i][2] = time_taken
-                        rows[i][3] = correctness
+                        row[2] = time_taken
+                        row[3] = correctness
 
                         if str(correctness).lower() == 'false':
-                            rows[i][4] = str(int(rows[i][4]) + 1)
+                            row[4] = str(int(row[4]) + 1)
                         else:
-                            rows[i][4] = '0'
+                            row[4] = '0'
 
                         updated = True
+                    rows.append(row)
 
-                if updated:
-                    await self.write_csv(path, rows)
-
-            await asyncio.sleep(0)  # Allow other coroutines to run
-
-            self.counter += 1
-
-            if self.counter >= self.threshold:
-                await self.sort_flashcards(path)
-                self.counter = 0
+            if updated:
+                with open(path, 'w', newline='', encoding='utf-8') as file:
+                    writer = csv.writer(file)
+                    writer.writerows(rows)
 
             return updated
 
@@ -51,21 +40,21 @@ class DataHandler:
 
             return updated
 
-    async def read_csv(self, path: str) -> list:
+    @staticmethod
+    def read_csv(path: str) -> list:
         questions = []
         try:
-            async with self.lock:
-                with open(path, 'r', encoding='utf-8') as file:
-                    reader = csv.reader(file)
-                    questions = [row for row in reader]
-
+            with open(path, 'r', encoding='utf-8') as file:
+                reader = csv.reader(file)
+                questions = list(reader)
         except Exception as e:
             # Handle the exception, e.g., print an error message or log the exception
             print(f"An error occurred while loading flashcards: {e}")
 
         return questions
 
-    async def append_data(self, data: list, path: str) -> None:
+    @staticmethod
+    def append_data(data: list, path: str) -> None:
         try:
             question = data[0]
             answer = data[1]
@@ -74,25 +63,19 @@ class DataHandler:
             number_of_times_failed = data[4]
 
             # Save the data to the CSV file
-            async with self.lock:
-                with open(path, 'a', newline='', encoding='utf-8') as file:
-                    writer = csv.writer(file)
-                    writer.writerow([question, answer, time_taken, correctness, number_of_times_failed])
-
-            self.counter += 1
-
-            if self.counter >= self.threshold:
-                await self.sort_flashcards(path)
-                self.counter = 0
+            with open(path, 'a', newline='', encoding='utf-8') as file:
+                writer = csv.writer(file)
+                writer.writerow([question, answer, time_taken, correctness, number_of_times_failed])
 
         except Exception as e:
             # Handle the exception, e.g., print an error message or log the exception
             print(f"An error occurred while saving the flashcard: {e}")
             return jsonify({"success": False})
 
-    async def sort_flashcards(self, path: str) -> None:
+    @staticmethod
+    def sort_flashcards(path: str) -> None:
         try:
-            questions = await self.read_csv(path)
+            questions = DataHandler.read_csv(path)
 
             if questions is None:
                 print("Unable to load flashcards for sorting.")
@@ -100,15 +83,10 @@ class DataHandler:
 
             questions.sort(key=lambda x: (x[3] is False, -float(x[2]), int(x[4])), reverse=True)
 
-            async with self.lock:
-                await self.write_csv(path, questions)
+            with open(path, 'w', newline='', encoding='utf-8') as file:
+                writer = csv.writer(file)
+                writer.writerows(questions)
         except IndexError:
             print("Some rows in the CSV file do not have the expected number of columns.")
         except Exception as e:
             print(f"An error occurred while sorting flashcards: {e}")
-
-    @staticmethod
-    async def write_csv(path: str, questions: list) -> None:
-        with open(path, 'w', newline='', encoding='utf-8') as file:
-            writer = csv.writer(file)
-            writer.writerows(questions)
