@@ -12,7 +12,7 @@
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
 
 </head>
-<body onload="getFlashcard()">
+<body onload="debounced_get()">
   <header>
     <a href="/" class="back-link">
         <img src="/static/webData/back.svg" class="back-icon" alt="Back" onerror="this.style.display='none'; document.querySelector('.back-link').textContent='Back';">
@@ -29,7 +29,7 @@
     </div>
     
 
-    <button id="getFlashcardBtn" onclick="getFlashcard()">Get Flashcard</button>
+    <button id="getFlashcardBtn" onclick="debounced_get()">Get Flashcard</button>
   </main>
 
 </body>
