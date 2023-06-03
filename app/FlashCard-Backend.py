@@ -2,6 +2,7 @@ import atexit
 import csv
 import random
 import threading
+import json
 
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
@@ -103,7 +104,7 @@ class Backend:
             print(f"An error occurred while sorting flashcards: {e}")
 
     def run(self):
-        self.app.run(host='0.0.0.0', port=5000, debug=True, threaded=True)
+        self.app.run(host='0.0.0.0', threaded=True)
 
 
 class DataHandler:
