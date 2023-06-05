@@ -37,8 +37,10 @@ function debounce(func, delay) {
       }, delay);
     };
   }
-  
-  // Example usage
+
   const debounced_get = debounce(getFlashcard, 750);
   
-   
+function flipCard() {
+  const card = document.querySelector('.card');
+  card.classList.toggle('is-flipped');
+}
