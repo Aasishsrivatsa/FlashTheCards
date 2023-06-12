@@ -1,0 +1,7 @@
+{
+    "csv": "flashcards.csv",
+    "ip": "0.0.0.0",
+    "port": 8080,
+    "threaded": true,
+    "debug": false
+}
