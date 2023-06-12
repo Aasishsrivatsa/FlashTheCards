@@ -1,3 +1,6 @@
+p{
+  font-family: Arial, sans-serif;
+}
 body {
   font-family: Arial, sans-serif;
   background-color: #f5f5f5;
@@ -18,6 +21,7 @@ button{
   border: none;
   border-radius: 8px;
   cursor: pointer;
+  margin: 1px;
 }
 
 button:hover {
@@ -48,7 +52,7 @@ button:hover {
 }
 
 .card-container {
-  perspective: 1000px;
+  perspective: auto;
 }
 
 .card {
@@ -58,6 +62,7 @@ button:hover {
   position: relative;
   transform-style: preserve-3d;
   transition: transform 0.6s;
+  margin: 2%
 }
 
 .card-face {
