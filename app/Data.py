@@ -1,27 +1,28 @@
-import threading
-import csv
+import os
 import json
+import csv
+
+
 
 class DataHandler:
-    lock = threading.Lock()
-    max_threshold = 4
-    current_threshold = 0
+    def __init__(self, path: str):
+        self.max_threshold = 4
+        self.current_threshold = 0
+        self.path = os.path.join(os.path.dirname(__file__), path)
 
-    @classmethod
-    def settings(cls):
-        with open("settings.json") as file:
-            data = json.load(file)
-        return data
+    def load_setting(self):
+        json_path = os.path.join(os.path.dirname(__file__), "settings.json")
+        with open(json_path) as file:
+            setting = json.load(file)
+        return setting
 
-    @classmethod
-    def sort_prioritize(cls):
-        cls.current_threshold += 1
-        if cls.current_threshold >= cls.max_threshold:
-            cls.current_threshold = 0
-            threading.Thread(target=cls.sort_flashcards, args=(cls.path,)).start()
+    def sort_prioritize(self):
+        self.current_threshold += 1
+        if self.current_threshold >= self.max_threshold:
+            self.current_threshold = 0
+            self.sort_flashcards(self.path)
 
-    @classmethod
-    def update_flashcard(cls, data: list, path: str) -> None:
+    def update_flashcard(self, data: list) -> None:
         question = data[0]
         time_taken = data[1]
         correctness = data[2]
@@ -30,48 +31,44 @@ class DataHandler:
         rows = []
 
         try:
-            with cls.lock:
-                with open(path, 'r', encoding='utf-8') as file:
-                    reader = csv.reader(file)
-                    for row in reader:
-                        if row[0] == question:
-                            row[2] = time_taken
-                            row[3] = correctness
+            with open(self.path, 'r', encoding='utf-8') as file:
+                reader = csv.reader(file)
+                for row in reader:
+                    if row[0] == question:
+                        row[2] = time_taken
+                        row[3] = correctness
 
-                            if str(correctness).lower() == 'false':
-                                row[4] = str(int(row[4]) + 1)
-                            else:
-                                row[4] = '0'
+                        if str(correctness).lower() == 'false':
+                            row[4] = str(int(row[4]) + 1)
+                        else:
+                            row[4] = '0'
 
-                            updated = True
+                        updated = True
 
-                        rows.append(row)
+                    rows.append(row)
 
             if updated:
-                with cls.lock:
-                    with open(path, 'w', newline='', encoding='utf-8') as file:
-                        writer = csv.writer(file)
-                        writer.writerows(rows)
+                with open(self.path, 'w', newline='', encoding='utf-8') as file:
+                    writer = csv.writer(file)
+                    writer.writerows(rows)
 
-                cls.sort_prioritize()
+                self.sort_prioritize()
 
         except Exception as e:
-            raise Exception(f"An error occurred while updating the flashcard: {e}")
+            print(f"An error occurred while updating the flashcard: {e}")
 
-    @classmethod
-    def read_csv(cls, path: str) -> list:
+    def read_csv(self) -> list:
         questions = []
         try:
-            with open(path, 'r', encoding='utf-8') as file:
+            with open(self.path, 'r', encoding='utf-8') as file:
                 reader = csv.reader(file)
                 questions = list(reader)
         except Exception as e:
-            raise Exception(f"An error occurred while loading flashcards: {e}")
+            print(f"An error occurred while loading flashcards: {e}")
 
         return questions
 
-    @classmethod
-    def append_data(cls, data: list, path: str) -> None:
+    def append_data(self, data: list) -> None:
         try:
             question = data[0]
             answer = data[1]
@@ -79,36 +76,33 @@ class DataHandler:
             correctness = data[3]
             number_of_times_failed = data[4]
 
-            with cls.lock:
-                with open(path, 'a', newline='', encoding='utf-8') as file:
-                    writer = csv.writer(file)
-                    writer.writerow([question, answer, time_taken, correctness, number_of_times_failed])
+            with open(self.path, 'a', newline='', encoding='utf-8') as file:
+                writer = csv.writer(file)
+                writer.writerow([question, answer, time_taken, correctness, number_of_times_failed])
 
         except Exception as e:
-            raise Exception(f"An error occurred while saving the flashcard: {e}")
-
+            print(f"An error occurred while saving the flashcard: {e}")
         else:
-            cls.sort_prioritize()
+            self.sort_prioritize()
 
-    @classmethod
-    def sort_flashcards(cls, path: str) -> None:
+    def sort_flashcards(self) -> None:
         try:
-            questions = DataHandler.read_csv(path)
+            questions = self.read_csv()
 
             if questions is None:
-                raise Exception("Unable to load flashcards for sorting.")
+                print("Unable to load flashcards for sorting.")
 
             # Remove empty lines from the questions list
             questions = [question for question in questions if question]
 
             questions.sort(key=lambda x: (x[3] is False, -float(x[2]), int(x[4])), reverse=True)
 
-            with cls.lock:
-                with open(path, 'w', newline='', encoding='utf-8') as file:
-                    writer = csv.writer(file)
-                    writer.writerows(questions)
-        except IndexError:
-            raise Exception("Some rows in the CSV file do not have the expected number of columns.")
-        except Exception as e:
-            raise Exception(f"An error occurred while sorting flashcards: {e}")
+            with open(self.path, 'w', newline='', encoding='utf-8') as file:
+                writer = csv.writer(file)
+                writer.writerows(questions)
 
+        except IndexError:
+            print("Some rows in the CSV file do not have the expected number of columns.")
+        
+        except Exception as e:
+            print(f"An error occurred while sorting flashcards: {e}")

@@ -1,23 +1,36 @@
-import atexit
-import csv
 import random
-import threading
-import json
-
-from Data import DataHandler
-
+import atexit
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
+from Data import DataHandler
 
-class Server:
-    def __init__(self,) -> None:
+class Server(DataHandler):
+    def __init__(self):        
+        self.setting = self.load_setting()
+        self.csv = self.setting["csv"]
+        super().__init__(self.setting["csv"])
 
-        self.settings = DataHandler.settings()
+        self.app = Flask(__name__)
+        CORS(self.app)
+
+        atexit.register(self.shutdown)
+
         self.questions = []
         self.load_flashcards()
+        self.run()
+    
+    def shutdown(self):
+        print("Shutting down server...")
+        self.sort_flashcards()
+        print("Server shut down.")
 
-        atexit.register(self.shutdown)  # Register shutdown hook
-
+    def register_routes(self):
+        self.app.route('/')(self.homepage)
+        self.app.route('/add-card')(self.add_card)
+        self.app.route('/start-app')(self.start)
+        self.app.route('/flashcard', methods=['GET'])(self.get_flashcard)
+        self.app.route('/save_flashcard', methods=['POST'])(self.save_flashcard)
+        self.app.route('/update_flashcard', methods=['POST'])(self.update_flashcard)
 
     def homepage(self):
         return render_template("homepage.html")
@@ -29,32 +42,27 @@ class Server:
         return render_template("start-app.html")
 
     def run(self):
-        self.app = Flask(__name__)
-        CORS(self.app)
+        self.register_routes()
 
-        self.app.route('/')(self.homepage)
-        self.app.route('/add-card')(self.add_card)
-        self.app.route('/start-app')(self.start)
-        self.app.route('/flashcard', methods=['GET'])(self.get_flashcard)
-        self.app.route('/save_flashcard', methods=['POST'])(self.save_flashcard)
-        self.app.route('/update_flashcard', methods=['POST'])(self.update_flashcard)
+        self.app.run(
+            host=self.setting["ip"],
+            threaded=self.setting["threaded"],
+            port=self.setting["port"],
+            debug=self.setting["debug"]
+        )
 
-        self.app.run(host=self.settings["ip"], threaded=True)
+    def update_flashcard(self):
+        question = request.form.get("question")
+        time_taken = request.form.get("time")
+        correctness = request.form.get("correctness")
+        data = [question, time_taken, correctness]
 
-
-
-class Backend:
-    def load_flashcards(self):
         try:
-            self.questions = DataHandler.read_csv(self.csv_file_path)
+            self.update_flashcard(data, self.setting["csv"])
+            return jsonify({"success": True, "message": "Response collected"})
         except Exception as e:
-            return jsonify({"success": False, "message": f"An error occurred while loading flashcards: {e}"})
-        
-    def shutdown(self):
-        try:
-            threading.Thread(target=DataHandler.sort_flashcards, args=(self.csv_file_path,)).start()
-        except Exception as e:
-            print(f"An error occurred while sorting flashcards: {e}")
+            return jsonify({"success": False, "message": f"An error occurred while updating the flashcard: {e}"})
+
     def save_flashcard(self):
         question = request.form.get("question")
         answer = request.form.get("answer")
@@ -71,25 +79,14 @@ class Backend:
             return jsonify({"success": False, "message": "An error occurred while saving the flashcard."})
         else:
             try:
-                threading.Thread(target=DataHandler.append_data, args=(question_list, self.csv_file_path)).start()
+                self.append_data(question_list)
                 self.questions.append(question_list)
                 return jsonify({"success": True, "message": "Flashcard saved!"})
             except Exception as e:
                 return jsonify({"success": False, "message": f"An error occurred while saving the flashcard: {e}"})
-
-    def update_flashcard(self):
-        question = request.form.get("question")
-        time_taken = request.form.get("time")
-        correctness = request.form.get("correctness")
-
-        data = [question, time_taken, correctness]
-
-        try:
-            threading.Thread(target=DataHandler.update_flashcard, args=(data, self.csv_file_path)).start()
-
-            return jsonify({"success": True, "message": "Response collected"})
-        except Exception as e:
-            return jsonify({"success": False, "message": f"An error occurred while updating the flashcard: {e}"})
+            
+    def load_flashcards(self):
+        self.questions = self.read_csv()
 
     def get_flashcard(self):
         if len(self.questions) == 0:
@@ -111,4 +108,3 @@ class Backend:
 
 if __name__ == "__main__":
     server = Server()
-    server.run()
