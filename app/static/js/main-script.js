@@ -18,7 +18,6 @@ function getFlashcard() {
     var titleElement = document.querySelector('.card-question');
     var descriptionElement = document.querySelector('.card-answer');
   
-    // Replace pipes with commas in the question and answer
     var question = flashcard.question.replace(/\|/g, ',');
     var answer = flashcard.answer.replace(/\|/g, ',');
   
@@ -38,7 +37,7 @@ function debounce(func, delay) {
     };
   }
 
-  const debounced_get = debounce(getFlashcard, 750);
+  const debounced_get = debounce(getFlashcard, 300);
   
 function flipCard() {
   const card = document.querySelector('.card');
